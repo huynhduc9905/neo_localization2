@@ -16,7 +16,7 @@ neo_localization2_node:
     loc_update_rate: 1
 
     # map tile update rate [1/s]
-    map_update_rate: 0.5
+    map_update_rate: 0.3
 
     # map tile size in pixels
     map_size: 1000

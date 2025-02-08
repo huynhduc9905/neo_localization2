@@ -4,7 +4,7 @@ neo_localization2_node:
     odom_frame: "odom"
     # exponential low pass gain for localization update (0 to 1)
     #   (higher gain means odometry is less used / relied on)
-    update_gain: 0.3
+    update_gain: 0.8
 
     # time based confidence gain when in 2D / 1D mode
     confidence_gain: 0.01
@@ -13,7 +13,7 @@ neo_localization2_node:
     sample_rate: 10
 
     # localization update rate [1/s]
-    loc_update_rate: 1
+    loc_update_rate: 0.2
 
     # map tile update rate [1/s]
     map_update_rate: 0.5

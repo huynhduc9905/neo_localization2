@@ -177,7 +177,7 @@ public:
     m_sub_pose_estimate = this->create_subscription<geometry_msgs::msg::PoseWithCovarianceStamped>(m_initial_pose, 1, std::bind(&NeoLocalizationNode::pose_callback, this, _1));
 
     m_pub_map_tile = this->create_publisher<nav_msgs::msg::OccupancyGrid>(m_map_tile, 1);
-    m_pub_loc_pose = this->create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>(m_amcl_pose, 10);
+    m_pub_loc_pose = this->create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>(m_amcl_pose, rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable());
     m_pub_loc_pose_2 = this->create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>(m_map_pose, 10);
     m_pub_pose_array = this->create_publisher<geometry_msgs::msg::PoseArray>(m_particle_cloud, 10);
 

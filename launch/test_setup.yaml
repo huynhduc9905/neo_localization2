@@ -90,6 +90,8 @@ neo_localization2_node:
     particle_cloud: particlecloud
     # amcl_pose topic
     amcl_pose: amcl_pose
+    # for debugging
+    broadcast_info: false
 
     set_initial_pose: true
     initia_pose.x: 0.0

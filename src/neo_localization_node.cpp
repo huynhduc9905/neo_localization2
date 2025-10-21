@@ -20,6 +20,7 @@
 #include <geometry_msgs/msg/pose_array.hpp>
 #include <geometry_msgs/msg/transform_stamped.h>
 #include <geometry_msgs/msg/pose_with_covariance_stamped.h>
+#include <std_msgs/msg/bool.hpp>
 #include <tf2_ros/transform_listener.h>
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2/LinearMath/Transform.h>
@@ -175,6 +176,7 @@ public:
     m_sub_scan_topic = this->create_subscription<sensor_msgs::msg::LaserScan>(m_scan_topic, rclcpp::SensorDataQoS(), std::bind(&NeoLocalizationNode::scan_callback, this, _1));
     m_sub_map_topic = this->create_subscription<nav_msgs::msg::OccupancyGrid>("/map", rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable(), std::bind(&NeoLocalizationNode::map_callback, this, _1));
     m_sub_pose_estimate = this->create_subscription<geometry_msgs::msg::PoseWithCovarianceStamped>(m_initial_pose, 1, std::bind(&NeoLocalizationNode::pose_callback, this, _1));
+    m_sub_only_use_odom = this->create_subscription<std_msgs::msg::Bool>("/global_costmap/binary_state", rclcpp::QoS(10).transient_local().reliable(), std::bind(&NeoLocalizationNode::use_odom_callback, this, _1));
 
     m_pub_map_tile = this->create_publisher<nav_msgs::msg::OccupancyGrid>(m_map_tile, 1);
     m_pub_loc_pose = this->create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>(m_amcl_pose, rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable());
@@ -195,6 +197,7 @@ public:
     robot_namespace.erase(std::remove(robot_namespace.begin(), robot_namespace.end(), '/'), 
     robot_namespace.end());
 
+    only_using_odom = false;
     m_base_frame = robot_namespace + m_base_frame;
     m_odom_frame = robot_namespace + m_odom_frame;
   }
@@ -222,6 +225,17 @@ protected:
     RCLCPP_INFO_ONCE(this->get_logger(), "map_received");
     scan->header.frame_id = m_ns + scan->header.frame_id;
     m_scan_buffer[scan->header.frame_id] = scan;
+  }
+
+  void use_odom_callback(const std_msgs::msg::Bool::SharedPtr msg)
+  {
+    std::lock_guard<std::mutex> lock(m_node_mutex);
+    if (msg->data == true) {
+      only_using_odom = true;
+    }
+    else {
+      only_using_odom = false;
+    }
   }
 
   /*
@@ -410,7 +424,7 @@ protected:
 
     // decide if we have 3D, 2D, 1D or 0D localization
     int mode = 0;
-    if(best_score > m_min_score) {
+    if ((best_score > m_min_score) && (only_using_odom == false)){
       if(grad_std_uvw[0] > m_constrain_threshold) {
         if(grad_std_uvw[1] > m_constrain_threshold) {
           mode = 3; // 2D position + rotation
@@ -747,6 +761,7 @@ private:
   rclcpp::Subscription<nav_msgs::msg::OccupancyGrid>::SharedPtr m_sub_map_topic;
   rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr m_sub_scan_topic;
   rclcpp::Subscription<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr m_sub_pose_estimate;
+  rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr m_sub_only_use_odom;
   std::shared_ptr<tf2_ros::TransformBroadcaster> m_tf_broadcaster;
 
   bool m_broadcast_tf = false;
@@ -784,6 +799,7 @@ private:
   int m_loc_update_time_ms = 0;
   double m_map_update_rate = 0;
   double m_transform_timeout = 0;
+  bool only_using_odom;
 
   builtin_interfaces::msg::Time m_offset_time;
   double m_offset_x = 0;          // current x offset between odom and map

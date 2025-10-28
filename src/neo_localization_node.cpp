@@ -15,6 +15,7 @@
 #include <angles/angles.h>
 #include <nav_msgs/msg/odometry.h>
 #include <nav_msgs/msg/occupancy_grid.h>
+#include <std_msgs/msg/float32.hpp>
 #include <sensor_msgs/msg/laser_scan.hpp>
 #include <geometry_msgs/msg/quaternion.h>
 #include <geometry_msgs/msg/pose_array.hpp>
@@ -182,6 +183,7 @@ public:
     m_pub_loc_pose = this->create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>(m_amcl_pose, rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable());
     m_pub_loc_pose_2 = this->create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>(m_map_pose, 10);
     m_pub_pose_array = this->create_publisher<geometry_msgs::msg::PoseArray>(m_particle_cloud, 10);
+    m_pub_matching_score = this->create_publisher<std_msgs::msg::Float32>("/matching_score", rclcpp::QoS(rclcpp::KeepLast(10)).transient_local().reliable());
 
     m_loc_update_timer = create_wall_timer(
                 std::chrono::milliseconds(m_loc_update_time_ms), std::bind(&NeoLocalizationNode::loc_update, this));
@@ -513,6 +515,11 @@ protected:
     // publish visualization
     m_pub_pose_array->publish(pose_array);
 
+    // publish matching score data
+    std_msgs::msg::Float32 matching_score_msg;
+    matching_score_msg.data = best_score;
+    m_pub_matching_score->publish(matching_score_msg);
+
     // keep last odom pose
     m_last_odom_pose = odom_pose;
 
@@ -757,6 +764,7 @@ private:
   rclcpp::Publisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr m_pub_loc_pose;
   rclcpp::Publisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr m_pub_loc_pose_2;
   rclcpp::Publisher<geometry_msgs::msg::PoseArray>::SharedPtr m_pub_pose_array;
+  rclcpp::Publisher<std_msgs::msg::Float32>::SharedPtr m_pub_matching_score;
 
   rclcpp::Subscription<nav_msgs::msg::OccupancyGrid>::SharedPtr m_sub_map_topic;
   rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr m_sub_scan_topic;

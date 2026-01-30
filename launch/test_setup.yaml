@@ -55,11 +55,11 @@ neo_localization2_node:
     #   if worst gradient direction is below this value we go into 1D mode
     #   if both gradient directions are below we may go into 0D mode, depending on disable_threshold
     #   higher values will make it go into 1D / 0D mode earlier
-    constrain_threshold: 0.1
+    constrain_threshold: 0.625
 
     # threshold for 1D / 2D decision making (with or without orientation)
     #   higher values will make it go into 1D mode earlier
-    constrain_threshold_yaw: 0.2
+    constrain_threshold_yaw: 1.5
 
     # minimum number of points per update
     min_points: 20
@@ -77,7 +77,7 @@ neo_localization2_node:
     transform_timeout: 0.2
 
     # if to broadcast map frame
-    broadcast_tf: true
+    broadcast_tf: false
     # Scan topic
     scan_topic: scan
     # Initial Pose topic

@@ -59,7 +59,7 @@ public:
     this->declare_parameter<bool>("broadcast_tf", true);
     this->get_parameter_or("broadcast_tf", m_broadcast_tf, true);
 
-    this->declare_parameter<std::string>("base_frame", "base_link");
+    this->declare_parameter<std::string>("base_frame", "base_footprint");
     this->get_parameter("base_frame", m_base_frame);
 
     this->declare_parameter<std::string>("odom_frame", "odom");
